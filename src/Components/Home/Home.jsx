@@ -3,10 +3,15 @@
 import { useState } from 'react';
 import './Home.css'
 import { useEffect } from 'react';
+import Cart from '../Cart/Cart';
+import Swal from 'sweetalert2';
 
 const Home = () => {
     const [allActors, setAllActors] = useState([]);
     const [selectActors, setSelectActors] = useState([]);
+    const [totalCost, setTotalCost] = useState(0);
+    const [remaining, setRemaining] = useState(25000);
+
 
     useEffect(( )=>{
         fetch('../../../public/data,json')
@@ -16,10 +21,47 @@ const Home = () => {
     }, []);
 
     const handelSelectActor = (actor) =>{
-        setSelectActors([...selectActors, actor])
+        const isExist = selectActors.find((actorBooking)=> actorBooking.id == actor.id);
+        // console.log(isExist);
+
+
+        let totalCostAmount = actor.salary;
+        if (isExist) {
+            return(
+                Swal .fire({
+                    title: 'Error!',
+                    text: 'You are already Booking this person',
+                    icon: 'error',
+                    confirmButtonText: 'Close'
+                  }) );
+        }
+        else{
+            selectActors.forEach((actorSalary)=>{
+                totalCostAmount = totalCostAmount + actorSalary.salary;
+            } );
+            setTotalCost(totalCostAmount) 
+
+            if (totalCostAmount > 25000) {
+                return ( Swal.fire({
+                    title: 'Error!',
+                    text: 'Your money is gone',
+                    icon: 'error',
+                    confirmButtonText: 'Close'
+                  }) );
+            }
+
+            const remainingAmount =25000 - totalCostAmount;
+            setRemaining(remainingAmount) 
+
+            setSelectActors([...selectActors, actor])
+        }
     };
-console.log(selectActors);
+// console.log(selectActors);
 // console.log(allActors);
+
+
+
+
 
     return (
         <>
@@ -35,13 +77,16 @@ console.log(selectActors);
                        <h3 className='border px-2  rounded-lg'>salary:{actor.salary} $</h3>
                        <h3 className='border px-2  rounded-lg'>{actor.role}</h3>
                    </div>
-                   <button onClick={()=>handelSelectActor(actor)} className='btn-primary text-xl px-5 py-1 rounded-lg mt-8'> Select</button>
+                   <button onClick={()=>handelSelectActor(actor)} className='bg-teal-500 text-black text-xl px-5 py-1 rounded-lg mt-8'> Select</button>
                    </div>
                 ))
             }
         </div>
-        <div className='md:w-1/4 border border-slate-800  bg-[#1e293b80]  rounded-lg text-center'>
-            <h1 className='text-5xl p-5'>Hello World</h1>
+        <div className='md:w-1/4 border border-slate-800  bg-[#1e293b80]  rounded-lg text-center px-5'>
+            <Cart 
+            selectActors={selectActors} 
+            totalCost={totalCost} 
+            remaining={remaining} ></Cart>
         </div>
         </div>
         </>
